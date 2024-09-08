@@ -1,10 +1,18 @@
 import express from "express";
 import { getAllUsers, getUser, createUser } from "./database.js";
-// import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import requireAuth from "./middlewares/requireAuth.js";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 
 app.use(express.json());
+
+app.get("/", requireAuth, (req, res) => {
+  res.send(`Hello ${req.user.username}`);
+});
 
 app.get("/users", async (req, res) => {
   const users = await getAllUsers();
@@ -19,8 +27,11 @@ app.get("/users/:id", async (req, res) => {
 
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
-  const user = await createUser(username, password);
-  res.sendStatus(201).send(user);
+  const userID = await createUser(username, password);
+
+  const token = jwt.sign({ userId: userID }, process.env.ENCRYPTION);
+
+  res.send({ token });
 });
 
 app.listen(8080, () => {

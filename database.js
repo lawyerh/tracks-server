@@ -17,7 +17,7 @@ export async function getAllUsers() {
   const [rows] = await pool.query("select * from users");
   return rows;
 }
-pool.prepare;
+
 export async function getUser(id) {
   const [rows] = await pool.query(
     `select * from users 
@@ -26,8 +26,17 @@ export async function getUser(id) {
   );
   return rows[0];
 }
+export async function getUserByUsername(username) {
+  const [rows] = await pool.query(
+    `select * from users
+    where username = ?`,
+    [username]
+  );
+  return rows[0];
+}
 export async function createUser(username, password) {
   bcrypt.hash(password, 10, async (err, hash) => {
+    if (err) return err;
     const [res] = await pool.query(
       `
               insert into users (username, password)
@@ -38,6 +47,4 @@ export async function createUser(username, password) {
     return res.insertId;
   });
 }
-export async function loginUser(username, password) {
-  
-}
+export async function loginUser(username, password) {}

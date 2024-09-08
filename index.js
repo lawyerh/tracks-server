@@ -29,10 +29,18 @@ app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
   const userID = await createUser(username, password);
 
+  if (userID === null) {
+    res.status(500).send({ message: "user creation failed" });
+  }
   const token = jwt.sign({ userId: userID }, process.env.ENCRYPTION);
 
   res.send({ token });
 });
+
+app.post("/login", async (req, res) => {
+const {username, password} = req.body;
+
+})
 
 app.listen(8080, () => {
   console.log("Listening on 8080");

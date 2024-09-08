@@ -1,5 +1,6 @@
 import mysql from "mysql2";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 dotenv.config();
 
 const pool = mysql
@@ -16,7 +17,7 @@ export async function getAllUsers() {
   const [rows] = await pool.query("select * from users");
   return rows;
 }
-
+pool.prepare;
 export async function getUser(id) {
   const [rows] = await pool.query(
     `select * from users 
@@ -25,13 +26,18 @@ export async function getUser(id) {
   );
   return rows[0];
 }
-export async function createUser(name, password) {
-  const [res] = await pool.query(
-    `
-        insert into users (username, password)
-        values (?,?);
-        `,
-    [name, password]
-  );
-  return res.insertId;
+export async function createUser(username, password) {
+  bcrypt.hash(password, 10, async (err, hash) => {
+    const [res] = await pool.query(
+      `
+              insert into users (username, password)
+              values (?,?);
+              `,
+      [username, hash]
+    );
+    return res.insertId;
+  });
+}
+export async function loginUser(username, password) {
+  
 }

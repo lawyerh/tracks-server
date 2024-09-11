@@ -26,6 +26,7 @@ export async function getUser(id) {
   );
   return rows[0];
 }
+
 export async function getUserByUsername(username) {
   const [rows] = await pool.query(
     `select * from users
@@ -34,6 +35,7 @@ export async function getUserByUsername(username) {
   );
   return rows[0];
 }
+
 export async function createUser(username, password) {
   bcrypt.hash(password, 10, async (err, hash) => {
     if (err) return err;
@@ -47,4 +49,29 @@ export async function createUser(username, password) {
     return res.insertId;
   });
 }
-export async function loginUser(username, password) {}
+// Only need this route for recording a login, or fetching initial info
+//export async function loginUser(username, password) {}
+
+export async function createTrack(trackName) {
+  const [res] = await pool.query(
+    `
+    insert into tracks (name)
+    values (?)
+    `,
+    [trackName]
+  );
+  console.log("Inserted track ", res);
+  return "OK";
+}
+
+export async function deleteTrack(id) {
+  const res = await pool.query(
+    `
+    delete from tracks
+    where id = ?
+    `,
+    [id]
+  );
+  console.log("Deleted track", res);
+  return res;
+}

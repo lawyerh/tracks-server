@@ -17,14 +17,11 @@ import passwordAuth from "./middlewares/passwordAuth.js";
 const app = express();
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: "127.0.0.1",
-  })
-);
+app.use(cors());
 
 app.get("/", requireAuth, (req, res) => {
-  res.send(`Hello ${req.user.username}`);
+  console.log("hello");
+  res.send(`Hello!`);
 });
 
 app.get("/users", async (req, res) => {
@@ -38,7 +35,7 @@ app.get("/users/:id", async (req, res) => {
   res.send(user);
 });
 
-app.post("/signup", async (req, res) => {
+app.post("/signup", cors(), async (req, res) => {
   const { username, password } = req.body;
   const userID = await createUser(username, password);
 
@@ -47,14 +44,16 @@ app.post("/signup", async (req, res) => {
   }
   const token = jwt.sign({ userId: userID }, process.env.ENCRYPTION);
 
-  res.send({ token });
+  res.status(200).send({ token });
 });
 
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   // login credentials not provided
   if (!username || !password)
-    return res.status(422).send({ error: "Must provide email and password" });
+    return res
+      .status(422)
+      .send({ error: "Must provide username and password" });
   // Time to try to fetch a user
   const user = await getUserByUsername(username);
   // username was not recognized
@@ -65,9 +64,8 @@ app.post("/login", async (req, res) => {
     // passwordAuth resolves a promise. Need try/catch
     await passwordAuth(password, user.password);
     const token = jwt.sign({ userId: user.id }, process.env.ENCRYPTION);
-    // Exposing user ID - if this project went into production
-    // would likely want to hash the id as well
-    res.status(200).send({ id: user.id, token });
+    // Send the jwt token
+    res.status(200).send({ token });
   } catch (err) {
     res.status(422).send({ error: "username or password incorrect" });
   }
@@ -79,11 +77,11 @@ app.post("/tracks", async (req, res) => {
   res.status(200).send(track);
 });
 
-app.post('/tracks/delete', async (req, res) => {
-  const {trackId} = req.body;
+app.post("/tracks/delete", async (req, res) => {
+  const { trackId } = req.body;
   const result = await deleteTrack(trackId);
-  res.status(200).send(result)
-})
+  res.status(200).send(result);
+});
 
 app.listen(8080, () => {
   console.log("Listening on 8080");
